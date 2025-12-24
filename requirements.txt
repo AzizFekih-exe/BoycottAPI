@@ -1,0 +1,11 @@
+flask
+flask-smorest
+flask-sqlalchemy
+flask-migrate
+flask-jwt-extended
+flask-cors
+python-dotenv
+marshmallow
+requests
+gunicorn
+psycopg2-binary
