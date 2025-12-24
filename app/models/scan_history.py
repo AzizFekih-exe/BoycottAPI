@@ -10,6 +10,10 @@ class ScanHistory(db.Model):
     scanned_at = db.Column(db.DateTime, default=datetime.utcnow, index=True)
     returned_score = db.Column(db.Float)
     returned_status = db.Column(db.String(50))
+    created_at = db.Column(
+        db.DateTime,
+        nullable=False,
+        default=datetime.utcnow)
     
     # Relationships
     product = db.relationship('Product', back_populates='scan_history')
