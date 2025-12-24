@@ -1,26 +1,46 @@
+import os
+from dotenv import load_dotenv
 from flask import Flask
 from flask_cors import CORS
-from dotenv import load_dotenv
-import os
+from authlib.integrations.flask_client import OAuth
 
 from app.extensions import db, migrate, jwt, api
-from app.config import config
+from app.config import config as app_config
 
 load_dotenv()
 
+oauth = OAuth()
 
-def create_app(config_name: str = "development") -> Flask:
+
+def create_app(config_name: str = None) -> Flask:
     app = Flask(__name__)
-    app.config.from_object(config[config_name])
+
+    # Choose config: explicit argument > APP_ENV env var > development
+    env_name = config_name or os.getenv("APP_ENV", "development")
+    app.config.from_object(app_config.get(env_name, app_config["development"]))
 
     # Initialize extensions
     db.init_app(app)
     migrate.init_app(app, db)
     jwt.init_app(app)
     api.init_app(app)
+    oauth.init_app(app)
     CORS(app)
-    
-    
+
+    # Google OAuth client config
+    app.config["GOOGLE_CLIENT_ID"] = os.environ.get("GOOGLE_CLIENT_ID")
+    app.config["GOOGLE_CLIENT_SECRET"] = os.environ.get("GOOGLE_CLIENT_SECRET")
+    app.config["GOOGLE_DISCOVERY_URL"] = (
+        "https://accounts.google.com/.well-known/openid-configuration"
+    )
+
+    oauth.register(
+        name="google",
+        client_id=app.config["GOOGLE_CLIENT_ID"],
+        client_secret=app.config["GOOGLE_CLIENT_SECRET"],
+        server_metadata_url=app.config["GOOGLE_DISCOVERY_URL"],
+        client_kwargs={"scope": "openid email profile"},
+    )
 
     # Register blueprints
     from app.resources.auth import blp as auth_blp
@@ -30,15 +50,12 @@ def create_app(config_name: str = "development") -> Flask:
     from app.resources.scores import blp as scores_blp
     from app.resources.admin import blp as admin_blp
 
-
     api.register_blueprint(auth_blp)
     api.register_blueprint(admin_blp)
     api.register_blueprint(products_blp)
     api.register_blueprint(companies_blp)
     api.register_blueprint(proofs_blp)
     api.register_blueprint(scores_blp)
-
-
 
     # JWT user loader: attaches User object to the JWT
     @jwt.user_lookup_loader

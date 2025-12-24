@@ -1,6 +1,8 @@
 from app.extensions import db
 from datetime import datetime
 from enum import Enum
+from app.extensions import db
+
 
 class UserRole(str, Enum):
     CONSUMER = 'CONSUMER'
@@ -15,8 +17,10 @@ class User(db.Model):
     email = db.Column(db.String(255), unique=True, nullable=False, index=True)
     display_name = db.Column(db.String(100), nullable=False)
     role = db.Column(db.Enum(UserRole), default=UserRole.CONSUMER, nullable=False)
-    oauth_provider = db.Column(db.String(50))  # 'google', 'github', etc.
-    oauth_subject = db.Column(db.String(255))  # OAuth sub claim
+    oauth_provider = db.Column(db.String(50), nullable=True)
+    oauth_subject = db.Column(db.String(255), nullable=True)
+    totp_secret = db.Column(db.String(32), nullable=True)
+    is_2fa_enabled = db.Column(db.Boolean, default=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     
     # Relationships

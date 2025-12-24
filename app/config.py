@@ -17,6 +17,7 @@ class Config:
     JWT_HEADER_NAME = "Authorization"
     JWT_HEADER_TYPE = "Bearer"
 
+    
     # API / OpenAPI
     API_TITLE = "Boycott Decision API"
     API_VERSION = "v1"
@@ -24,7 +25,7 @@ class Config:
     OPENAPI_URL_PREFIX = "/"
     OPENAPI_SWAGGER_UI_PATH = "/swagger-ui"
     OPENAPI_SWAGGER_UI_URL = "https://cdn.jsdelivr.net/npm/swagger-ui-dist/"
-    
+
     API_SPEC_OPTIONS = {
         "components": {
             "securitySchemes": {
@@ -41,10 +42,12 @@ class Config:
 
 class DevelopmentConfig(Config):
     DEBUG = True
+    USE_MOCK_LOGIN = True  # allow /auth/login in dev
 
 
 class ProductionConfig(Config):
     DEBUG = False
+    USE_MOCK_LOGIN = False  # force Google + 2FA in prod
 
 
 config = {
