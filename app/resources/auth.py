@@ -2,7 +2,7 @@ from datetime import timedelta
 import base64
 import io
 
-from flask import request, jsonify, url_for, abort, current_app
+from flask import jsonify, url_for
 from flask.views import MethodView
 from flask_smorest import Blueprint
 from flask_jwt_extended import (
@@ -19,18 +19,17 @@ from app.extensions import db
 from app.models.user import User, UserRole
 from app import oauth
 
+
 blp = Blueprint(
     "Auth",
     __name__,
     url_prefix="/auth",
-    description="Authentication operations",
+    description="Google OAuth2 login, JWT issuance, and 2FA (TOTP) operations.",
 )
 
 
-
-
 class TokenSchema(Schema):
-    access_token = fields.Str(required=False)   # optional when 2FA pending
+    access_token = fields.Str(required=False)  # optional when 2FA pending
     user_id = fields.Int(required=True)
     role = fields.Str(required=True)
     requires_2fa = fields.Bool(required=False)
@@ -39,7 +38,6 @@ class TokenSchema(Schema):
 
 class TwoFASchema(Schema):
     code = fields.Str(required=True)
-
 
 
 # ---------- Google OAuth2 login ----------
@@ -81,6 +79,7 @@ class GoogleCallback(MethodView):
             db.session.add(user)
             db.session.commit()
 
+        # If 2FA is enabled, issue a short-lived temp token
         if user.is_2fa_enabled and user.totp_secret:
             temp_token = create_access_token(
                 identity=str(user.id),
@@ -94,6 +93,7 @@ class GoogleCallback(MethodView):
                 "role": user.role.value,
             }
 
+        # Otherwise issue full JWT
         access_token = create_access_token(
             identity=str(user.id),
             additional_claims={"role": user.role.value},
@@ -143,7 +143,6 @@ class TwoFASetup(MethodView):
             "otpauth_url": otpauth_url,
             "qrcode_base64": qrcode_b64,
         }
-
 
 
 @blp.route("/2fa/verify")
