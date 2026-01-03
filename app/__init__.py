@@ -78,4 +78,14 @@ def create_app(config_name: str = None) -> Flask:
     def expired_token_callback(jwt_header, jwt_data):
         return {"message": "Token has expired"}, 401
 
+    # ---- Security headers ----
+    @app.after_request
+    def set_security_headers(response):
+        response.headers["X-Content-Type-Options"] = "nosniff"
+        response.headers["X-Frame-Options"] = "DENY"
+        response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+        # When frontend domain is fixed, you can tighten CSP:
+        # response.headers["Content-Security-Policy"] = "default-src 'self';"
+        return response
+
     return app

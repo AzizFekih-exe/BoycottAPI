@@ -5,7 +5,7 @@ from app.extensions import db
 from app.models.company import Company
 from app.models.proof import Proof, ProofType, ProofStatus
 
-BOYCOTT_API_BASE = "https://api.boycottisraeli.biz/v1"  # example external API
+BOYCOTT_API_BASE = "https://api.boycottisraeli.biz/v1"  
 # If the API needs a key:
 BOYCOTT_API_KEY = os.getenv("BOYCOTT_API_KEY")
 

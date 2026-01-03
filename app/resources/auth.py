@@ -19,7 +19,6 @@ from app.extensions import db
 from app.models.user import User, UserRole
 from app import oauth
 
-
 blp = Blueprint(
     "Auth",
     __name__,
@@ -41,6 +40,7 @@ class TwoFASchema(Schema):
 
 
 # ---------- Google OAuth2 login ----------
+
 
 @blp.route("/google/login")
 class GoogleLogin(MethodView):
@@ -93,7 +93,7 @@ class GoogleCallback(MethodView):
                 "role": user.role.value,
             }
 
-        # Otherwise issue full JWT
+        # Otherwise issue full JWT (not necessarily fresh)
         access_token = create_access_token(
             identity=str(user.id),
             additional_claims={"role": user.role.value},
@@ -106,6 +106,7 @@ class GoogleCallback(MethodView):
 
 
 # ---------- 2FA setup & verify ----------
+
 
 @blp.route("/2fa/setup")
 class TwoFASetup(MethodView):
@@ -170,10 +171,12 @@ class TwoFAVerify(MethodView):
         user.is_2fa_enabled = True
         db.session.commit()
 
+        # If called with the temp 2FA token, issue a fresh access token
         if claims.get("type") == "2fa_pending":
             access_token = create_access_token(
                 identity=str(user.id),
                 additional_claims={"role": user.role.value},
+                fresh=True,  # <--- this is what enables "fresh-only" endpoints
             )
             return {
                 "access_token": access_token,
@@ -185,6 +188,7 @@ class TwoFAVerify(MethodView):
 
 
 # ---------- /me endpoint ----------
+
 
 @blp.route("/me")
 class UserProfile(MethodView):
