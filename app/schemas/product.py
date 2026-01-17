@@ -1,6 +1,7 @@
 from marshmallow import Schema, fields
 
 from app.models.product import BoycottStatus
+from app.models.enums import ModerationStatus
 from app.schemas.company import CompanyDetailSchema
 from app.schemas.proof import ProofSchema
 from app.schemas.external_alternative import ExternalAlternativeSchema
@@ -13,6 +14,7 @@ class ProductSchema(Schema):
     category = fields.Str(required=True)
     boycott_score = fields.Float(dump_only=True)
     boycott_status = fields.Enum(BoycottStatus, dump_only=True)
+    status = fields.Enum(ModerationStatus, dump_only=True)
     company_id = fields.Int(required=True, load_only=True)
     created_at = fields.DateTime(dump_only=True)
 

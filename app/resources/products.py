@@ -15,7 +15,9 @@ from app.services.alternative_finder import AlternativeFinder
 from app.services.proof_search import ProofSearchService
 from app.utils.decorators import role_required
 from app.models.user import UserRole
-from app.models.proof import ProofStatus
+from app.models.enums import ModerationStatus
+# Backward compatibility if needed, but we should use ModerationStatus
+ProofStatus = ModerationStatus
 
 
 blp = Blueprint(
@@ -91,8 +93,8 @@ class ProductScan(MethodView):
 class ProductList(MethodView):
     @blp.response(200, ProductSchema(many=True))
     def get(self):
-        """List all products"""
-        return Product.query.all()
+        """List all products (APPROVED only)"""
+        return Product.query.filter_by(status=ModerationStatus.APPROVED).all()
 
     @jwt_required()
     @role_required(UserRole.CONTRIBUTOR, UserRole.MODERATOR, UserRole.ADMIN)
@@ -100,7 +102,16 @@ class ProductList(MethodView):
     @blp.response(201, ProductSchema)
     def post(self, product_data):
         """Create a new product"""
-        product = Product(**product_data)
+        # Determine status based on role
+        user_id = get_jwt_identity()
+        from app.models.user import User
+        user = User.query.get(user_id)
+        
+        status = ModerationStatus.APPROVED
+        if user.role == UserRole.CONTRIBUTOR:
+            status = ModerationStatus.PENDING
+            
+        product = Product(**product_data, status=status)
         db.session.add(product)
         db.session.commit()
 
@@ -108,6 +119,38 @@ class ProductList(MethodView):
         ProofSearchService.search_async(product.company_id)
 
         return product
+
+
+@blp.route("/pending")
+class PendingProducts(MethodView):
+    @jwt_required()
+    @role_required(UserRole.MODERATOR, UserRole.ADMIN)
+    @blp.response(200, ProductSchema(many=True))
+    def get(self):
+        """List pending products for review."""
+        return Product.query.filter_by(status=ModerationStatus.PENDING).all()
+
+
+@blp.route("/<int:product_id>/approve")
+class ProductApproval(MethodView):
+    @jwt_required()
+    @role_required(UserRole.MODERATOR, UserRole.ADMIN)
+    @blp.response(200, ProductSchema)
+    def patch(self, product_id):
+        """Approve a product."""
+        product = Product.query.get_or_404(product_id)
+        product.status = ModerationStatus.APPROVED
+        db.session.commit()
+        return product
+
+    @jwt_required()
+    @role_required(UserRole.MODERATOR, UserRole.ADMIN)
+    def delete(self, product_id):
+        """Reject (delete) a product."""
+        product = Product.query.get_or_404(product_id)
+        db.session.delete(product)
+        db.session.commit()
+        return {"message": "Product rejected and deleted"}, 200
 
 
 @blp.route("/<int:product_id>")

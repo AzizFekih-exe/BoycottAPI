@@ -1,5 +1,6 @@
 from app.extensions import db
 from datetime import datetime
+from app.models.enums import ModerationStatus
 
 class Company(db.Model):
     __tablename__ = 'companies'
@@ -9,6 +10,7 @@ class Company(db.Model):
     country = db.Column(db.String(100))
     website = db.Column(db.String(500))
     risk_score = db.Column(db.Float, default=0.0)  # 0-100
+    status = db.Column(db.Enum(ModerationStatus), default=ModerationStatus.APPROVED, nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     
     # Relationships

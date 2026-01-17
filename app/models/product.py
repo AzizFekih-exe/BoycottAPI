@@ -1,6 +1,7 @@
 from app.extensions import db
 from datetime import datetime
 from enum import Enum
+from app.models.enums import ModerationStatus
 
 class BoycottStatus(str, Enum):
     BOYCOTT = 'BOYCOTT'
@@ -16,6 +17,7 @@ class Product(db.Model):
     boycott_score = db.Column(db.Float, default=0.0)  # 0-100
     boycott_status = db.Column(db.Enum(BoycottStatus), default=BoycottStatus.NO_TANGIBLE_PROOF)
     company_id = db.Column(db.Integer, db.ForeignKey('companies.id'), nullable=False)
+    status = db.Column(db.Enum(ModerationStatus), default=ModerationStatus.APPROVED, nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     
     # Relationships

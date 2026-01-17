@@ -1,17 +1,10 @@
 from app.extensions import db
 from datetime import datetime
 from enum import Enum
+from app.models.enums import ModerationStatus, ProofType
 
-class ProofType(str, Enum):
-    ARTICLE = 'article'
-    DONATION = 'donation'
-    SOCIAL_POST = 'social_post'
-    STATEMENT = 'statement'
-
-class ProofStatus(str, Enum):
-    PENDING = 'PENDING'
-    APPROVED = 'APPROVED'
-    REJECTED = 'REJECTED'
+# Keep aliases for backward compatibility if needed, but better to update everywhere
+ProofStatus = ModerationStatus
 
 class Proof(db.Model):
     __tablename__ = 'proofs'
@@ -22,7 +15,7 @@ class Proof(db.Model):
     description = db.Column(db.Text, nullable=False)
     evidence_date = db.Column(db.Date)
     weight = db.Column(db.Float, default=1.0)  # Scoring multiplier
-    status = db.Column(db.Enum(ProofStatus), default=ProofStatus.PENDING, index=True)
+    status = db.Column(db.Enum(ModerationStatus), default=ModerationStatus.PENDING, index=True)
     
     company_id = db.Column(db.Integer, db.ForeignKey('companies.id'), nullable=False)
     product_id = db.Column(db.Integer, db.ForeignKey('products.id'), nullable=True)

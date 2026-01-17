@@ -1,4 +1,5 @@
 from marshmallow import Schema, fields
+from app.models.enums import ModerationStatus
 
 class CompanySchema(Schema):
     id = fields.Int(dump_only=True)
@@ -6,6 +7,7 @@ class CompanySchema(Schema):
     country = fields.Str()
     website = fields.URL()
     risk_score = fields.Float(dump_only=True)
+    status = fields.Enum(ModerationStatus, dump_only=True)
     created_at = fields.DateTime(dump_only=True)
 
 class CompanyDetailSchema(CompanySchema):
