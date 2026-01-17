@@ -137,3 +137,25 @@ class ProductDetail(MethodView):
         db.session.delete(product)
         db.session.commit()
         return "", 204
+
+
+@blp.route("/<int:product_id>/alternatives")
+class ProductAlternatives(MethodView):
+    @blp.response(200, ProductScanResponseSchema(only=("local_alternatives", "external_alternatives")))
+    def get(self, product_id):
+        """Get alternatives for a product"""
+        product = Product.query.get_or_404(product_id)
+        
+        local_alternatives = []
+        external_alternatives = []
+        
+        # Only find alternatives if product is boycotted
+        if product.boycott_status.value == "BOYCOTT":
+            alt_result = AlternativeFinder.find_alternatives(product)
+            local_alternatives = alt_result.get("local", [])
+            external_alternatives = alt_result.get("external", [])
+        
+        return {
+            "local_alternatives": local_alternatives,
+            "external_alternatives": external_alternatives,
+        }

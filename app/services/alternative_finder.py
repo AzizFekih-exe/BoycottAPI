@@ -21,9 +21,17 @@ class AlternativeFinder:
         if limit is None:
             limit = cls.MAX_ALTERNATIVES
             
-        print(f"[AlternativeFinder] Finding alternatives for: {product.name} / {product.category}")
+        # 1) TRY EXTERNAL ALTERNATIVES FIRST (Amazon API)
+        print("[AlternativeFinder] Trying external alternatives first (Amazon API)")
+        external = cls._fetch_external_alternatives(product, limit)
+        
+        if external:
+            print(f"[AlternativeFinder] Found {len(external)} external alternatives from Amazon")
+            return {"local": [], "external": external}
+        
+        print("[AlternativeFinder] No external alternatives, falling back to local DB")
 
-        # 1) LOCAL ALTERNATIVES FROM OUR DB
+        # 2) FALLBACK TO LOCAL ALTERNATIVES FROM OUR DB
         query = (
             Product.query
             .join(Product.company)
@@ -53,13 +61,8 @@ class AlternativeFinder:
             print(f"[AlternativeFinder] Found {len(local_alts)} local alternatives")
             return {"local": local_alts, "external": []}
         
-        print("[AlternativeFinder] No local alternatives, calling RapidAPI")
-
-
-        # 2) RapidAPI fallback
-        external = cls._fetch_external_alternatives(product, limit)
-        print(f"[AlternativeFinder] Got {len(external)} external alternatives")
-        return {"local": [], "external": external}
+        print("[AlternativeFinder] No alternatives found (local or external)")
+        return {"local": [], "external": []}
 
     @classmethod
     def _fetch_external_alternatives(cls, product, limit):

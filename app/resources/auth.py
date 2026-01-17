@@ -86,23 +86,34 @@ class GoogleCallback(MethodView):
                 additional_claims={"role": user.role.value, "type": "2fa_pending"},
                 expires_delta=timedelta(minutes=5),
             )
-            return {
-                "requires_2fa": True,
+            # Build the frontend redirect URL for 2FA
+            params = {
+                "requires_2fa": "true",
                 "temp_token": temp_token,
                 "user_id": user.id,
                 "role": user.role.value,
             }
+            query_string = urllib.parse.urlencode(params)
+            return redirect(f"http://localhost:5173/auth/callback?{query_string}")
+
+        import urllib.parse
+        from flask import redirect
 
         # Otherwise issue full JWT (not necessarily fresh)
         access_token = create_access_token(
             identity=str(user.id),
             additional_claims={"role": user.role.value},
         )
-        return {
+        
+        # Build the frontend redirect URL
+        # Assuming frontend is on localhost:5173
+        params = {
             "access_token": access_token,
             "user_id": user.id,
-            "role": user.role.value,
+            "role": user.role.value
         }
+        query_string = urllib.parse.urlencode(params)
+        return redirect(f"http://localhost:5173/auth/callback?{query_string}")
 
 
 # ---------- 2FA setup & verify ----------

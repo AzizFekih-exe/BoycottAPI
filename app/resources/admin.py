@@ -27,6 +27,16 @@ class UserResponseSchema(Schema):
     role = fields.Str()
 
 
+@blp.route("/users")
+class UserList(MethodView):
+    @jwt_required()
+    @role_required(UserRole.ADMIN)
+    @blp.response(200, UserResponseSchema(many=True))
+    def get(self):
+        """List all users (ADMIN only)."""
+        return User.query.all()
+
+
 @blp.route("/users/<int:user_id>/role")
 class UserRoleResource(MethodView):
     @jwt_required()
