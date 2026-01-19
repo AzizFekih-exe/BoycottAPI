@@ -8,3 +8,4 @@ class UserSchema(Schema):
     role = fields.Enum(UserRole, dump_only=True)
     oauth_provider = fields.Str(dump_only=True)
     created_at = fields.DateTime(dump_only=True)
+    is_2fa_enabled = fields.Boolean(dump_only=True)

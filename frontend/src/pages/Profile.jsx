@@ -9,7 +9,9 @@ import { Shield, User, Mail, Award, CheckCircle } from "lucide-react";
 const API_URL = "http://localhost:8000";
 
 export default function Profile() {
-  const { user } = useAuth();
+  const { user, login, token } = useAuth();
+  
+  // existing state ...
   const [qrCode, setQrCode] = useState(null);
   const [verificationCode, setVerificationCode] = useState("");
   const [message, setMessage] = useState("");
@@ -25,6 +27,10 @@ export default function Profile() {
     try {
       const response = await axios.get(`${API_URL}/auth/me`);
       setIs2FAEnabled(response.data.is_2fa_enabled);
+      // Update auth context with fresh user data
+      if (token) {
+        login(token, response.data);
+      }
     } catch (error) {
       console.error("Failed to fetch profile:", error);
     }

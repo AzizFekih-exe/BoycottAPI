@@ -6,6 +6,7 @@ import { ProtectedRoute } from "./components/ProtectedRoute";
 import Home from "./pages/Home";
 import Authentication from "./pages/Authentication";
 import AuthCallback from "./pages/AuthCallback";
+import Verify2FA from "./pages/Verify2FA";
 import ProductList from "./pages/ProductList";
 import ProductDetail from "./pages/ProductDetail";
 import CompanyList from "./pages/CompanyList";
@@ -14,6 +15,7 @@ import Profile from "./pages/Profile";
 import SubmitProduct from "./pages/SubmitProduct";
 import SubmitProof from "./pages/SubmitProof";
 import SubmitCompany from "./pages/SubmitCompany";
+import SubmitPanel from "./pages/SubmitPanel";
 import PendingRequests from "./pages/PendingRequests";
 import AdminPanel from "./pages/AdminPanel";
 
@@ -26,6 +28,7 @@ function App() {
             <Route path="/" element={<Home />} />
             <Route path="/login" element={<Authentication />} />
             <Route path="/auth/callback" element={<AuthCallback />} />
+            <Route path="/verify-2fa" element={<Verify2FA />} />
             <Route path="/products" element={<ProductList />} />
             <Route path="/products/:id" element={<ProductDetail />} />
             <Route path="/companies" element={<CompanyList />} />
@@ -42,6 +45,14 @@ function App() {
             />
             
             {/* Contributor+ Routes */}
+            <Route 
+              path="/submit" 
+              element={
+                <ProtectedRoute requiredRoles={["CONTRIBUTOR", "MODERATOR", "ADMIN"]}>
+                  <SubmitPanel />
+                </ProtectedRoute>
+              } 
+            />
             <Route 
               path="/submit/product" 
               element={

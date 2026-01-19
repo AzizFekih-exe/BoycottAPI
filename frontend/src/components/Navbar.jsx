@@ -32,7 +32,7 @@ export function Navbar() {
   const adminItems = [
     { 
       label: "Submit", 
-      path: "/submit/product", 
+      path: "/submit", 
       icon: FilePlus, 
       show: hasRole("CONTRIBUTOR", "MODERATOR", "ADMIN") 
     },

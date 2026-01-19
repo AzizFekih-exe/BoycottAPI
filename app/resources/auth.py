@@ -18,6 +18,8 @@ import qrcode
 from app.extensions import db
 from app.models.user import User, UserRole
 from app import oauth
+import urllib.parse
+from flask import redirect
 
 blp = Blueprint(
     "Auth",
@@ -92,12 +94,13 @@ class GoogleCallback(MethodView):
                 "temp_token": temp_token,
                 "user_id": user.id,
                 "role": user.role.value,
+                "email": user.email,
+                "display_name": user.display_name,
             }
             query_string = urllib.parse.urlencode(params)
             return redirect(f"http://localhost:5173/auth/callback?{query_string}")
 
-        import urllib.parse
-        from flask import redirect
+
 
         # Otherwise issue full JWT (not necessarily fresh)
         access_token = create_access_token(
@@ -110,7 +113,9 @@ class GoogleCallback(MethodView):
         params = {
             "access_token": access_token,
             "user_id": user.id,
-            "role": user.role.value
+            "role": user.role.value,
+            "email": user.email,
+            "display_name": user.display_name
         }
         query_string = urllib.parse.urlencode(params)
         return redirect(f"http://localhost:5173/auth/callback?{query_string}")
@@ -193,6 +198,8 @@ class TwoFAVerify(MethodView):
                 "access_token": access_token,
                 "user_id": user.id,
                 "role": user.role.value,
+                "email": user.email,
+                "display_name": user.display_name,
             }
 
         return {"message": "2FA enabled"}, 200

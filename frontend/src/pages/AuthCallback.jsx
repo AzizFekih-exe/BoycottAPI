@@ -14,8 +14,20 @@ export default function AuthCallback() {
     processed.current = true;
 
     const accessToken = searchParams.get("access_token");
+    
+    // Check for 2FA Requirement
+    const requires2FA = searchParams.get("requires_2fa");
+    const tempToken = searchParams.get("temp_token");
+
+    if (requires2FA === "true" && tempToken) {
+        navigate(`/verify-2fa?temp_token=${tempToken}`);
+        return;
+    }
+
     const userId = searchParams.get("user_id");
     const role = searchParams.get("role");
+    const email = searchParams.get("email");
+    const displayName = searchParams.get("display_name");
     
     // Minimal error handling
     if (!accessToken) {
@@ -24,7 +36,12 @@ export default function AuthCallback() {
         return;
     }
 
-    const userData = { id: userId, role: role };
+    const userData = { 
+      id: userId, 
+      role: role,
+      email: email,
+      display_name: displayName
+    };
     login(accessToken, userData);
     
     // Redirect to home
